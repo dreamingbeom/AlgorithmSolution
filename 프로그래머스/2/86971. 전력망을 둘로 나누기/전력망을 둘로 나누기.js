@@ -1,39 +1,48 @@
 function solution(n, wires) {
-    var answer = -1;
-    const node = []
-    for (let i=0; i <= n; i++) {
-        node.push([])
-    }
-    wires.forEach(([start, end]) => {
-        node[start].push(end)
-        node[end].push(start)
+    var answer = 10000000;
+    
+    const tree = new Array(n+1).fill().map(() => [])
+    wires.forEach((item) => {
+        const [s, e] = item
+        tree[s].push(e)
+        tree[e].push(s)
     })
-    let total = 1000000
-    const bfs = (target, ex) => {
+    const bfs = (start, notS, notE, vis) => {
+        const q = []
         let cnt = 0
-        const vis = new Array(n+1).fill(false)
-        vis[target] = true
-        const q = [target]
-        while (q.length) {
-            let start = q.shift()
-            node[start].forEach((item) => {
-             if (item !== ex && vis[item] === false) {
-                vis[item] = true
-                q.push(item)
-            }               
+        q.push(start)
+        while (q.length > 0) {
+            const s = q.shift()
+            vis[s] = true
+            cnt += 1
+            tree[s].forEach((e) => {
+                if (vis[e] === false &&
+                    !(s === notS && e === notE) &&
+                    !(s === notE && e === notS)
+                    ) {
+                    
+                    q.push(e)
+                }
             })
         }
-        let cntt = vis.filter(x => x === true).length
-        let cntf = n - cntt 
-        cnt = Math.abs(cntt - cntf)
-        return cnt
+        return cnt 
     }
-    wires.forEach(([a, b]) => {
-        const ansa = bfs(a, b)
-        const ansb = bfs(b, a)
-        total = Math.min(total, ansa, ansb)
-    })
-    answer = total
-
+    for (let i=0; i < wires.length; i++) {
+        const [notS, notE] = wires[i]
+        const total = []
+        const vis = new Array(n+1).fill(false)
+        for (let j=1; j <= n; j++) {
+            if (vis[j] === false) {
+                const cnt = bfs(j, notS, notE, vis)
+                if (cnt !== 0) {
+                    total.push(cnt)
+                }
+            }
+        }
+    total.sort((a, b) => b - a)
+    answer = Math.min(answer, total[0] - total[1])
+    }
+    
     return answer;
 }
+    
